@@ -1,0 +1,6 @@
+@WebApp_HostAddress = http://localhost:5109
+
+GET {{WebApp_HostAddress}}/patient/
+Accept: application/json
+
+###
