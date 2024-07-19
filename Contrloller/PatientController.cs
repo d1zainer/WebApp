@@ -100,13 +100,11 @@ namespace WebApp.Contrloller
                 return BadRequest("Данные пациента не указаны.");
             }
 
-            var existingPatient = _patientService.GetPatient(updatedPatient.Guid); // Предположим, что у пациента есть свойство Guid
+            var existingPatient = _patientService.GetPatient(updatedPatient.Guid); 
             if (existingPatient == null)
             {
                 return NotFound($"Пациент с идентификатором '{updatedPatient.Guid}' не найден.");
             }
-
-            // Обновляем данные пациента
             existingPatient.Fullname = updatedPatient.Fullname;
             existingPatient.Birthday = updatedPatient.Birthday;
             existingPatient.Gender = updatedPatient.Gender;
@@ -115,7 +113,7 @@ namespace WebApp.Contrloller
             {
                 _patientService.UpdatePatient(existingPatient);
                 DataJsonController.SavePatientsToJson(_patientService.GetPatients());
-                return Ok(existingPatient);
+                return Ok($"Пациент c {updatedPatient.Guid} был обновлен.");
             }
             catch (ArgumentException ex)
             {

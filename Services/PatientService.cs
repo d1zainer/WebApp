@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System.Threading;
 using System.Xml.Linq;
 using WebApp.Contrloller;
 using WebApp.Interfaces;
@@ -9,6 +10,7 @@ namespace WebApp.Services
     public class PatientService : IPatientService
     {
         private readonly List<Patient> _patients;
+        private readonly Mutex _mutex = new Mutex();
 
         public PatientService()
         {
@@ -41,20 +43,32 @@ namespace WebApp.Services
         /// <exception cref="ArgumentException"></exception>
         public void UpdatePatient(Patient patient)
         {
-            var existingPatient = _patients.FirstOrDefault(p => p.Fullname == patient.Fullname);
-            if (existingPatient != null)
+            _mutex.WaitOne();
+            try
             {
-                existingPatient.Fullname = patient.Fullname;
-                existingPatient.Birthday = patient.Birthday;
-                existingPatient.Gender = patient.Gender;
-                // Возможно, нужно обновить другие поля
+                var existingPatient = _patients.FirstOrDefault(p => p.Fullname == patient.Fullname);
+                if (existingPatient != null)
+                {
+                    existingPatient.Fullname = patient.Fullname;
+                    existingPatient.Birthday = patient.Birthday;
+                    existingPatient.Gender = patient.Gender;
+                    // Возможно, нужно обновить другие поля
+                }
+                else
+                {
+                    throw new ArgumentException("Пациент не найден");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new ArgumentException("Пациент не найден");
+                Console.WriteLine($"Ошибка при обновлении пациента: {ex.Message}");
             }
-            
+            finally
+            {
+                _mutex.ReleaseMutex();
+            }
         }
+
         /// <summary>
         /// удаляет пациента по имени
         /// </summary>
@@ -62,16 +76,29 @@ namespace WebApp.Services
         /// <exception cref="ArgumentException"></exception>
         public void DeletePatient(string name)
         {
-            var existingPatient = _patients.FirstOrDefault(p => p.Fullname == name);
-            if (existingPatient != null)
+            _mutex.WaitOne();
+            try
             {
-                _patients.Remove(existingPatient);
+                var existingPatient = _patients.FirstOrDefault(p => p.Fullname == name);
+                if (existingPatient != null)
+                {
+                    _patients.Remove(existingPatient);
+                }
+                else
+                {
+                    throw new ArgumentException("Пациент не найден");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new ArgumentException("Пациент не найден");
+                Console.WriteLine($"Ошибка при удалении пациента: {ex.Message}");
+            }
+            finally
+            {
+                _mutex.ReleaseMutex();
             }
         }
+
         /// <summary>
         /// удаляет пациента по GUID
         /// </summary>
@@ -79,18 +106,29 @@ namespace WebApp.Services
         /// <exception cref="ArgumentException"></exception>
         public void DeletePatient(Guid guid)
         {
-            var existingPatient = _patients.FirstOrDefault(p => p.Guid == guid);
-            Console.WriteLine(existingPatient != null ? $"Patient found: {existingPatient.Fullname}" : "Patient not found");
-            if (existingPatient != null)
+            _mutex.WaitOne();
+            try
             {
-                _patients.Remove(existingPatient);
+                var existingPatient = _patients.FirstOrDefault(p => p.Guid == guid);
+                Console.WriteLine(existingPatient != null ? $"Patient found: {existingPatient.Fullname}" : "Patient not found");
+                if (existingPatient != null)
+                {
+                    _patients.Remove(existingPatient);
+                }
+                else
+                {
+                    throw new ArgumentException("Пациент не найден");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new ArgumentException("Пациент не найден");
+                Console.WriteLine($"Ошибка при удалении пациента: {ex.Message}");
+            }
+            finally
+            {
+                _mutex.ReleaseMutex();
             }
         }
-
 
         /// <summary>
         /// получает пациента по GUID
@@ -107,10 +145,9 @@ namespace WebApp.Services
             else
             {
                 return _patients.Find(p => p.Guid == guid);
-
             }
-
         }
+
         /// <summary>
         /// добавляет пользователя
         /// </summary>
@@ -119,11 +156,13 @@ namespace WebApp.Services
         public void AddPatient(Patient patient)
         {
             if (patient != null)
+            {
                 _patients.Add(patient);
+            }
             else
+            {
                 throw new ArgumentException("Пациент не добавлен так как он пустой!");
+            }
         }
     }
-
-       
 }
