@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using WebApp.Model;
 
-namespace WebApp.Contrloller
+namespace WebApp
 {
     public class DataJsonController
     {
@@ -9,7 +9,7 @@ namespace WebApp.Contrloller
         /// загружает список пациентов
         /// </summary>
         /// <returns></returns>
-        public static  List<Patient> LoadPatientsFromJson()
+        public static List<Patient> LoadPatientsFromJson()
         {
             try
             {
@@ -37,7 +37,7 @@ namespace WebApp.Contrloller
         /// Сохраняет список пациентов
         /// </summary>
         /// <param name="patients"></param>
-        public static void SavePatientsToJson(IEnumerable<Patient> patients) 
+        public static void SavePatientsToJson(IEnumerable<Patient> patients)
         {
             try
             {
@@ -60,6 +60,6 @@ namespace WebApp.Contrloller
 
 
     }
-    
+
 
 }
